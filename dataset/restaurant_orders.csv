@@ -7999,3 +7999,8 @@ customer_id,age_group,gender,visit_frequency,preferred_cuisine,favorite_food_cat
 2398,26-35,Male,Regular,North Indian,Main Course,13,Garlic Naan,Dal Makhani,758.15,Dinner,Tuesday,Monsoon,Veg,Mild,5.0,2026-08-07 17:40:39,1
 1395,18-25,Other,Frequent,Chinese,Bread,8,Spring Rolls,Spring Rolls,460.38,Lunch,Wednesday,Spring,Non-Veg,Mild,3.7,2026-08-07 18:01:29,1
 1404,18-25,Other,Frequent,Mughlai,Bread,0,Shahi Paneer,Shahi Paneer,442.12,Lunch,Thursday,Spring,Non-Veg,Mild,4.3,2026-08-07 18:17:22,1
+0,string,string,string,string,string,0,string,string,0.0,string,string,string,string,string,0.0,2026-08-07T20:19:29.400904,0
+0,string,string,string,string,string,0,string,string,0.0,string,string,string,string,string,0.0,2026-08-07T20:19:30.783716,0
+1000,26-35,Male,Weekly,North Indian,Main Course,12,Kebabs,Shahi Paneer,650.0,Dinner,Saturday,Monsoon,Non-Veg,Medium,4.0,2026-08-07T20:20:31.334718,1
+0,string,string,string,string,string,0,string,string,0.0,string,string,string,string,string,0.0,2026-08-08T00:07:55.914668,0
+0,string,string,string,string,string,0,string,string,0.0,string,string,string,string,string,0.0,2026-08-08T00:08:00.553294,0
