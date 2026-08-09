@@ -24,7 +24,6 @@ def startup_event():
     load_model()
 
 
-# ---------- Request Schemas ----------
 class OrderRequest(BaseModel):
     customer_id: int
     age_group: str
@@ -45,7 +44,6 @@ class OrderRequest(BaseModel):
     ordered_again: int
 
 
-# ---------- Core recommendation logic (same as notebook) ----------
 def get_popular_dishes(top_n=5):
     df = model_data["df"]
     dish_stats = df.groupby("ordered_item").agg(
@@ -92,6 +90,55 @@ def get_trending_dishes(top_n=5, days=30):
             "reason": f"Trending — ordered {count} times in the last {days} days"
         })
     return results
+
+
+def get_combo_suggestion(dish, top_n=1):
+    df = model_data["df"]
+    dish_row_category = df[df["ordered_item"] == dish]["favorite_food_category"].mode()
+    if dish_row_category.empty:
+        return None
+    dish_category = dish_row_category[0]
+
+    customers_who_ordered = df[df["ordered_item"] == dish]["customer_id"].unique()
+
+    other_orders = df[
+        (df["customer_id"].isin(customers_who_ordered)) &
+        (df["ordered_item"] != dish) &
+        (df["favorite_food_category"] != dish_category)
+    ]
+
+    if other_orders.empty:
+        return None
+
+    combo = other_orders["ordered_item"].value_counts().head(top_n)
+    return combo.index[0] if not combo.empty else None
+
+
+def customers_also_ordered(dish, top_n=5):
+    df = model_data["df"]
+    customers_who_ordered = df[df["ordered_item"] == dish]["customer_id"].unique()
+
+    other_orders = df[
+        (df["customer_id"].isin(customers_who_ordered)) &
+        (df["ordered_item"] != dish)
+    ]
+
+    if other_orders.empty:
+        return {"dish": dish, "customers_also_ordered": []}
+
+    top_dishes = other_orders["ordered_item"].value_counts().head(top_n)
+    max_count = top_dishes.max()
+
+    results = []
+    for food, count in top_dishes.items():
+        confidence = round(float(min(count / max_count * 100, 99.9)), 1)
+        results.append({
+            "food": food,
+            "confidence": confidence,
+            "co_order_count": int(count)
+        })
+
+    return {"dish": dish, "customers_also_ordered": results}
 
 
 def recommend_dishes(customer_id, top_n=5):
@@ -190,17 +237,22 @@ def recommend_dishes(customer_id, top_n=5):
         if signal_strengths[best_reason] == 0:
             best_reason = "Complements your recent orders"
 
-        results.append({
+        combo = get_combo_suggestion(dish)
+
+        rec = {
             "food": dish,
             "confidence": confidence,
             "reason": best_reason
-        })
+        }
+        if combo:
+            rec["combo_suggestion"] = combo
+
+        results.append(rec)
 
     return {"customer_id": int(customer_id), "recommendations": results}
 
 
 def rebuild_model():
-    """Retrain: rebuild customer_profile and similarity matrix from current dataset."""
     df = pd.read_csv(DATASET_PATH)
 
     customer_profile = df.groupby("customer_id").agg({
@@ -235,7 +287,6 @@ def rebuild_model():
     return new_model_data
 
 
-# ---------- Endpoints ----------
 @app.get("/")
 def root():
     return {"message": "Restaurant Recommendation Engine API is running"}
@@ -245,8 +296,7 @@ def root():
 def get_recommendations(customer_id: int):
     if model_data is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    result = recommend_dishes(customer_id, top_n=5)
-    return result
+    return recommend_dishes(customer_id, top_n=5)
 
 
 @app.get("/trending")
@@ -254,6 +304,13 @@ def get_trending(days: int = 30, top_n: int = 5):
     if model_data is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
     return {"trending_dishes": get_trending_dishes(top_n=top_n, days=days)}
+
+
+@app.get("/also-ordered/{dish_name}")
+def get_also_ordered(dish_name: str, top_n: int = 5):
+    if model_data is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return customers_also_ordered(dish_name, top_n=top_n)
 
 
 @app.post("/order")
