@@ -70,6 +70,30 @@ def get_popular_dishes(top_n=5):
         })
     return results
 
+
+def get_trending_dishes(top_n=5, days=30):
+    df = model_data["df"].copy()
+    df["order_timestamp"] = pd.to_datetime(df["order_timestamp"])
+    cutoff = df["order_timestamp"].max() - pd.Timedelta(days=days)
+    recent = df[df["order_timestamp"] >= cutoff]
+
+    if recent.empty:
+        return []
+
+    trend_counts = recent["ordered_item"].value_counts().head(top_n)
+    max_count = trend_counts.max()
+
+    results = []
+    for food, count in trend_counts.items():
+        confidence = round(float(min(count / max_count * 100, 99.9)), 1)
+        results.append({
+            "food": food,
+            "confidence": confidence,
+            "reason": f"Trending — ordered {count} times in the last {days} days"
+        })
+    return results
+
+
 def recommend_dishes(customer_id, top_n=5):
     df = model_data["df"]
     customer_profile = model_data["customer_profile"]
@@ -223,6 +247,13 @@ def get_recommendations(customer_id: int):
         raise HTTPException(status_code=503, detail="Model not loaded")
     result = recommend_dishes(customer_id, top_n=5)
     return result
+
+
+@app.get("/trending")
+def get_trending(days: int = 30, top_n: int = 5):
+    if model_data is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return {"trending_dishes": get_trending_dishes(top_n=top_n, days=days)}
 
 
 @app.post("/order")

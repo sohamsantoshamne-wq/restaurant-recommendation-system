@@ -81,5 +81,18 @@ with col2:
     st.pyplot(fig)
 
 st.divider()
+st.subheader("🔥 Trending Foods (Last 30 Days)")
+
+df["order_timestamp"] = pd.to_datetime(df["order_timestamp"])
+recent_cutoff = df["order_timestamp"].max() - pd.Timedelta(days=30)
+recent_orders = df[df["order_timestamp"] >= recent_cutoff]
+
+if not recent_orders.empty:
+    trending = recent_orders["ordered_item"].value_counts().head(10)
+    st.bar_chart(trending)
+else:
+    st.info("Not enough recent order data to show trends.")
+
+st.divider()
 st.subheader("Recommendation Accuracy (from Model Evaluation)")
-st.info("Precision@5: 0.4884  |  Recall@5: 0.8382  |  F1 Score: 0.6172  (evaluated on 190 customers)")
+st.info("Precision@5: 0.4874  |  Recall@5: 0.8369  |  F1 Score: 0.6160  |  Accuracy: 0.7482  (evaluated on 190 customers)")
