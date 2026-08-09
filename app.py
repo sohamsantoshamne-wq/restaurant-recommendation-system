@@ -46,13 +46,41 @@ class OrderRequest(BaseModel):
 
 
 # ---------- Core recommendation logic (same as notebook) ----------
+def get_popular_dishes(top_n=5):
+    df = model_data["df"]
+    dish_stats = df.groupby("ordered_item").agg(
+        avg_rating=("customer_rating", "mean"),
+        order_count=("ordered_item", "count")
+    ).reset_index()
+
+    dish_stats["popularity_score"] = (
+        (dish_stats["avg_rating"] / 5) * 0.6 +
+        (dish_stats["order_count"] / dish_stats["order_count"].max()) * 0.4
+    )
+    top_dishes = dish_stats.sort_values("popularity_score", ascending=False).head(top_n)
+
+    results = []
+    max_score = top_dishes["popularity_score"].max()
+    for _, row in top_dishes.iterrows():
+        confidence = round(float(min(row["popularity_score"] / max_score * 100, 99.9)), 1)
+        results.append({
+            "food": row["ordered_item"],
+            "confidence": confidence,
+            "reason": "Popular and highly rated among all customers"
+        })
+    return results
+
 def recommend_dishes(customer_id, top_n=5):
     df = model_data["df"]
     customer_profile = model_data["customer_profile"]
     customer_sim_df = model_data["customer_sim_df"]
 
     if customer_id not in customer_profile["customer_id"].values:
-        return {"error": "Customer not found"}
+        return {
+            "customer_id": int(customer_id),
+            "recommendations": get_popular_dishes(top_n),
+            "note": "New customer detected — showing popular picks until order history builds up"
+        }
 
     cust_row = customer_profile[customer_profile["customer_id"] == customer_id].iloc[0]
     cust_orders = df[df["customer_id"] == customer_id]
@@ -194,8 +222,6 @@ def get_recommendations(customer_id: int):
     if model_data is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
     result = recommend_dishes(customer_id, top_n=5)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
     return result
 
 
