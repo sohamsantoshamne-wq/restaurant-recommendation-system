@@ -88,13 +88,27 @@ Returns the top 5 personalized dish recommendations.
 }
 ```
 
+### `GET /trending`
+Returns dishes trending in the last N days (default 30), based on order frequency.
+
+**Example Response:**
+```json
+{
+  "trending_dishes": [
+    {
+      "food": "Club Sandwich",
+      "confidence": 99.9,
+      "reason": "Trending — ordered 35 times in the last 30 days"
+    }
+  ]
+}
+```
+
 ### `POST /order`
 Stores a new customer order for future model retraining.
 
 ### `POST /train`
 Retrains the recommendation engine using the latest dataset.
-
-Interactive API docs available at: `http://127.0.0.1:8000/docs`
 
 ---
 
@@ -108,7 +122,19 @@ A Streamlit dashboard (`dashboard/dashboard.py`) visualizing:
 - Category distribution
 - Revenue distribution
 - Time-of-visit breakdown
+- 🔥 Trending foods (last 30 days)
 - Model recommendation accuracy
+
+
+
+---
+
+## ✨ Bonus Features Implemented
+
+- **Cold Start Handling** — New or unrecognized customers automatically receive popular, highly-rated dish suggestions instead of an error, ensuring the system remains useful even without prior order history.
+- **Trending Food Recommendation** — A dedicated `/trending` endpoint and dashboard visualization surface dishes most frequently ordered in the last 30 days, helping identify emerging customer preferences in near real-time.
+
+---
 
 ---
 
