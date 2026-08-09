@@ -57,6 +57,10 @@ def recommend_dishes(customer_id, top_n=5):
     cust_row = customer_profile[customer_profile["customer_id"] == customer_id].iloc[0]
     cust_orders = df[df["customer_id"] == customer_id]
 
+    cust_common_time = cust_orders["time_of_visit"].mode()[0] if not cust_orders.empty else None
+    cust_common_day = cust_orders["day_of_week"].mode()[0] if not cust_orders.empty else None
+    cust_common_season = cust_orders["season"].mode()[0] if not cust_orders.empty else None
+
     all_dishes = df["ordered_item"].unique()
     dish_scores = {}
 
@@ -65,34 +69,51 @@ def recommend_dishes(customer_id, top_n=5):
         content_score = 0
 
         if (dish_rows["preferred_cuisine"] == cust_row["preferred_cuisine"]).mean() > 0.3:
-            content_score += 0.35
+            content_score += 0.30
         if (dish_rows["favorite_food_category"] == cust_row["favorite_food_category"]).any():
-            content_score += 0.2
-        if (dish_rows["veg_nonveg_pref"] == cust_row["veg_nonveg_pref"]).mean() > 0.5:
             content_score += 0.15
+        if (dish_rows["veg_nonveg_pref"] == cust_row["veg_nonveg_pref"]).mean() > 0.5:
+            content_score += 0.10
         if (dish_rows["spice_preference"] == cust_row["spice_preference"]).mean() > 0.3:
-            content_score += 0.1
+            content_score += 0.10
 
         collab_score = 0
         orderers = dish_rows["customer_id"].unique()
         sims = [customer_sim_df.loc[customer_id, o] for o in orderers
                 if o != customer_id and o in customer_sim_df.columns]
         if sims:
-            collab_score = np.mean(sims) * 0.3
+            collab_score = np.mean(sims) * 0.25
 
         avg_rating = dish_rows["customer_rating"].mean()
-        rating_score = (avg_rating / 5) * 0.2
+        rating_score = (avg_rating / 5) * 0.15
 
         already_ordered = dish in cust_orders["ordered_item"].values
-        recency_score = 0.15 if already_ordered and cust_orders["ordered_again"].mean() > 0.5 else 0
+        recency_score = 0.10 if already_ordered and cust_orders["ordered_again"].mean() > 0.5 else 0
 
-        total = content_score + collab_score + rating_score + recency_score
+        time_score = 0
+        if cust_common_time and (dish_rows["time_of_visit"] == cust_common_time).mean() > 0.3:
+            time_score = 0.05
+
+        day_score = 0
+        if cust_common_day and (dish_rows["day_of_week"] == cust_common_day).mean() > 0.2:
+            day_score = 0.03
+
+        season_score = 0
+        if cust_common_season and (dish_rows["season"] == cust_common_season).mean() > 0.3:
+            season_score = 0.02
+
+        total = (content_score + collab_score + rating_score + recency_score
+                  + time_score + day_score + season_score)
+
         dish_scores[dish] = {
             "score": total,
             "content_score": content_score,
             "collab_score": collab_score,
             "rating_score": rating_score,
             "recency_score": recency_score,
+            "time_score": time_score,
+            "day_score": day_score,
+            "season_score": season_score,
             "avg_rating": round(avg_rating, 2)
         }
 
@@ -105,10 +126,13 @@ def recommend_dishes(customer_id, top_n=5):
         confidence = round(float(min(s["score"] / max_score * 100, 99.9)), 1)
 
         signal_strengths = {
-            "Frequently ordered by you before": s["recency_score"] / 0.15,
-            "Highly rated by customers with similar preferences": s["rating_score"] / 0.2,
-            "Customers with similar taste preferred this": s["collab_score"] / 0.3,
-            "Matches your preferred cuisine": s["content_score"] / 0.8,
+            "Frequently ordered by you before": s["recency_score"] / 0.10,
+            "Highly rated by customers with similar preferences": s["rating_score"] / 0.15,
+            "Customers with similar taste preferred this": s["collab_score"] / 0.25,
+            "Matches your preferred cuisine": s["content_score"] / 0.65,
+            "Popular during your usual visit time": s["time_score"] / 0.05 if s["time_score"] else 0,
+            "Popular on your usual visit day": s["day_score"] / 0.03 if s["day_score"] else 0,
+            "Matches seasonal preferences": s["season_score"] / 0.02 if s["season_score"] else 0,
         }
         best_reason = max(signal_strengths, key=signal_strengths.get)
         if signal_strengths[best_reason] == 0:
