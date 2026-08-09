@@ -160,5 +160,17 @@ source venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 ```
 
+
+
 ### 4. Generate the dataset & train the model
 Run the notebooks in order:
+
+
+## 🌐 Live Deployment
+
+The API is deployed and publicly accessible at:
+**https://restaurant-recommendation-system-q99n.onrender.com**
+
+Interactive API docs: **https://restaurant-recommendation-system-q99n.onrender.com/docs**
+
+*Note: Hosted on Render's free tier — the service may take 30-60 seconds to "wake up" if it has been inactive.*
