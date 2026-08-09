@@ -92,6 +92,29 @@ def get_trending_dishes(top_n=5, days=30):
     return results
 
 
+def get_seasonal_dishes(season=None, top_n=5):
+    df = model_data["df"]
+    if season is None:
+        season = df["season"].mode()[0]
+
+    seasonal_orders = df[df["season"] == season]
+    if seasonal_orders.empty:
+        return []
+
+    top_dishes = seasonal_orders["ordered_item"].value_counts().head(top_n)
+    max_count = top_dishes.max()
+
+    results = []
+    for food, count in top_dishes.items():
+        confidence = round(float(min(count / max_count * 100, 99.9)), 1)
+        results.append({
+            "food": food,
+            "confidence": confidence,
+            "reason": f"Popular during {season}"
+        })
+    return results
+
+
 def get_combo_suggestion(dish, top_n=1):
     df = model_data["df"]
     dish_row_category = df[df["ordered_item"] == dish]["favorite_food_category"].mode()
@@ -304,6 +327,13 @@ def get_trending(days: int = 30, top_n: int = 5):
     if model_data is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
     return {"trending_dishes": get_trending_dishes(top_n=top_n, days=days)}
+
+
+@app.get("/seasonal")
+def get_seasonal(season: str = None, top_n: int = 5):
+    if model_data is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    return {"season": season or "current", "seasonal_dishes": get_seasonal_dishes(season, top_n)}
 
 
 @app.get("/also-ordered/{dish_name}")
