@@ -50,10 +50,13 @@ Evaluated on a sample of 190 customers using Precision@5, Recall@5, and F1 Score
 
 | Metric | Score |
 |---|---|
-| **Precision@5** | 0.4884 |
-| **Recall@5** | 0.8382 |
-| **F1 Score** | 0.6172 |
+| **Precision@5** | 0.4874 |
+| **Recall@5** | 0.8369 |
+| **F1 Score** | 0.6160 |
+| **Accuracy** | 0.7482 |
 | Evaluated on | 190 customers |
+
+*Note: RMSE was not used, as this is a ranking/classification-style recommendation task rather than a continuous value prediction. RMSE is not applicable here.*
 
 **Interpretation:** Roughly half of the top-5 recommendations directly match dishes the customer is known to like, and the model successfully surfaces ~84% of all dishes a customer would enjoy within its top-5 list — a strong result for a synthetic-data MVP.
 
