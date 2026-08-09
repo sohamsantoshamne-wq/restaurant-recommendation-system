@@ -104,6 +104,40 @@ Returns dishes trending in the last N days (default 30), based on order frequenc
 }
 ```
 
+### `GET /seasonal`
+Returns dishes popular during a given season (defaults to the most common season in the data).
+
+**Example Response:**
+```json
+{
+  "season": "Summer",
+  "seasonal_dishes": [
+    {
+      "food": "Grilled Chicken",
+      "confidence": 99.9,
+      "reason": "Popular during Summer"
+    }
+  ]
+}
+```
+
+### `GET /also-ordered/{dish_name}`
+Returns dishes that customers who ordered a specific dish also frequently ordered.
+
+**Example Response:**
+```json
+{
+  "dish": "Paneer Butter Masala",
+  "customers_also_ordered": [
+    {
+      "food": "Dal Makhani",
+      "confidence": 99.9,
+      "co_order_count": 154
+    }
+  ]
+}
+```
+
 ### `POST /order`
 Stores a new customer order for future model retraining.
 
