@@ -133,6 +133,8 @@ A Streamlit dashboard (`dashboard/dashboard.py`) visualizing:
 
 - **Cold Start Handling** — New or unrecognized customers automatically receive popular, highly-rated dish suggestions instead of an error, ensuring the system remains useful even without prior order history.
 - **Trending Food Recommendation** — A dedicated `/trending` endpoint and dashboard visualization surface dishes most frequently ordered in the last 30 days, helping identify emerging customer preferences in near real-time.
+- **Meal Combo Recommendation** — Each recommended dish includes a data-driven combo suggestion (e.g., a curry paired with a commonly co-ordered bread), based on real co-ordering patterns in the dataset.
+- **Customers Also Ordered** — A dedicated `/also-ordered/{dish_name}` endpoint reveals what other customers who ordered a specific dish also bought, similar to "frequently bought together" patterns in e-commerce.
 
 ---
 

@@ -335,3 +335,9 @@ def retrain_model():
                 "customers": int(model_data["customer_profile"].shape[0])}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
