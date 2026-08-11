@@ -202,9 +202,8 @@ Run the notebooks in order:
 
 ## 🌐 Live Deployment
 
-The API is deployed and publicly accessible at:
-**https://restaurant-recommendation-system-q99n.onrender.com**
+**REST API:** https://restaurant-recommendation-system-q99n.onrender.com
+**Interactive API Docs:** https://restaurant-recommendation-system-q99n.onrender.com/docs
+**Analytics Dashboard:** https://restaurant-recommendation-system-ktk9derhxc7x84v6getj7c.streamlit.app/
 
-Interactive API docs: **https://restaurant-recommendation-system-q99n.onrender.com/docs**
-
-*Note: Hosted on Render's free tier — the service may take 30-60 seconds to "wake up" if it has been inactive.*
+*Note: The API is hosted on Render's free tier — it may take 30-60 seconds to "wake up" if it has been inactive. The dashboard is hosted on Streamlit Community Cloud.*
